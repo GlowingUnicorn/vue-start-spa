@@ -1,4 +1,5 @@
 <template>
+  <h2>Edit {{ currentPage.pageTitle }}</h2>
   <form action="" class="container mt-5 mb-3">
     <div class="row">
       <div class="col-md-8">
@@ -7,7 +8,7 @@
           <input
             type="text"
             class="form-control"
-            v-model="pageTitle"
+            v-model="currentPage.pageTitle"
           />
         </div>
         <div class="mb-3">
@@ -18,7 +19,7 @@
             type="text"
             class="form-control"
             rows=""
-            v-model="content"
+            v-model="currentPage.content"
           ></textarea>
         </div>
       </div>
@@ -28,7 +29,7 @@
           <input
             type="text"
             class="form-control"
-            v-model="text"
+            v-model="currentPage.link.text"
           />
         </div>
         <div class="mb-3">
@@ -36,7 +37,7 @@
           <input
             type="text"
             class="form-control"
-            v-model="url"
+            v-model="currentPage.link.url"
           />
         </div>
         <div class="mb-3">
@@ -45,7 +46,7 @@
             name="published"
             type="checkbox"
             class="form-check"
-            v-model="published"
+            v-model="currentPage.published"
           />
         </div>
       </div>
@@ -53,68 +54,32 @@
         <button
           type="submit"
           class="btn btn-primary"
-          :disabled="isFormInvalid"
-          @click.prevent="submitForm">
-          Page Created
+          @click.prevent="saveChanges">
+          Save Changes
         </button>
       </div>
     </div>
   </form>
 </template>
 
-<script>
-export default {
-  emits: {
-    pageCreated: ({
-      pageTitle, content, text, url,
-    }) => !pageTitle || !content || !text || !url,
-  },
-  inject: ['$eventBus'],
-  data() {
-    return {
-      pageTitle: '',
-      content: '',
-      text: '',
-      url: '',
-      published: true,
-    };
-  },
-  computed: {
-    isFormInvalid() {
-      return !this.pageTitle || !this.content || !this.text || !this.url;
-    },
-  },
-  methods: {
-    submitForm() {
-      const {
-        pageTitle, content, text, url, published,
-      } = this;
+<script setup>
+import { useRoute } from 'vue-router';
+import { defineProps, inject } from 'vue';
+import { $pagesInjectionKey, $eventBusInjectionKey } from '@/injectionKeys';
+import { EventNames } from '@/types/events';
 
-      if (this.isFormInvalid) {
-        // eslint-disable-next-line no-alert
-        alert('Please fill the form');
-        return;
-      }
+const route = useRoute();
+const $pages = inject($pagesInjectionKey);
+const $eventBus = inject($eventBusInjectionKey);
 
-      const payload = {
-        pageTitle,
-        content,
-        link: {
-          text,
-          url,
-        },
-        published,
-      };
+const props = defineProps(['index']);
 
-      this.$eventBus.$emit('pageCreated', payload);
-    },
-  },
-  watch: {
-    pageTitle(newTitle, oldTitle) {
-      if (this.text === oldTitle) {
-        this.text = newTitle;
-      }
-    },
-  },
-};
+const currentPage = $pages.getSinglePage(props.index);
+
+function saveChanges() {
+  console.log('saving');
+
+  $pages.editPage(props.index, currentPage);
+  $eventBus.$emit(EventNames.pageUpdated, { index: +props.index, page: currentPage });
+}
 </script>

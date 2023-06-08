@@ -2,7 +2,7 @@ import { EventNames, EventPayloads } from '@/types/events';
 
 const events = new Map<EventNames, Function[]>();
 
-export default {
+const $eventBus = {
   $on<EventName extends EventNames>(eventName: EventName, fn: Function) {
     if (!events.has(eventName)) {
       events.set(eventName, []);
@@ -31,3 +31,7 @@ export default {
     }
   },
 };
+
+export type EventBus = typeof $eventBus
+
+export default $eventBus;

@@ -1,34 +1,33 @@
 <template>
-<div v-if="!isEmpty(page)" class="container">
-  <h1>{{ page.pageTitle }}</h1>
-  <p>{{ page.content }}</p>
+<div v-if="!isEmpty(data.page)" class="container">
+  <h1>{{ data.page.pageTitle }}</h1>
+  <p>{{ data.page.content }}</p>
 </div>
 </template>
 
-<script lang="ts">
+<script setup lang="ts">
 
-import { defineComponent } from 'vue';
+import {
+  defineProps, inject, onMounted, reactive, watch,
+} from 'vue';
 import { isEmpty } from 'ramda';
 import { Page } from '@/types/data';
+import { $pagesInjectionKey } from '@/injectionKeys';
 
-export default defineComponent({
-  props: {
-    index: Number,
-  },
-  methods: { isEmpty },
-  created() {
-    this.page = this.$pages.getSinglePage(this.index!);
-  },
-  data() {
-    return {
-      page: { } as Page,
-    };
-  },
-  watch: {
-    index(newIndex) {
-      this.page = this.$pages.getSinglePage(newIndex);
-    },
-  },
+const props = defineProps(['index']);
+
+const data = reactive({
+  page: {} as Page,
+});
+const $pages = inject($pagesInjectionKey)!;
+
+onMounted(() => {
+  data.page = $pages.getSinglePage(props.index);
+});
+
+watch(props, (newData) => {
+  console.log(data);
+  data.page = $pages.getSinglePage(newData.index);
 });
 
 </script>
